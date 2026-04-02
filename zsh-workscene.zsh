@@ -2,7 +2,7 @@
 # https://github.com/henryhuanghenry/zsh-workscene
 # v0.2.0
 # Copyright (c) 2026 henryhuanghenry
-# MIT License — see LICENSE file for details.
+# PolyForm Noncommercial 1.0.0 — see LICENSE file for details.
 
 WKC_CONFIG="${WKC_CONFIG:-$HOME/.zsh-workscene.yaml}"
 

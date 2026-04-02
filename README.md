@@ -6,7 +6,7 @@
 
 Define work scenes in YAML. Launch iTerm2 tabs, split panes, run commands, and open your editor — all at once.
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![License: PolyForm Noncommercial](https://img.shields.io/badge/License-PolyForm%20Noncommercial-blue.svg)](LICENSE)
 [![Platform: macOS](https://img.shields.io/badge/Platform-macOS-lightgrey.svg)](https://www.apple.com/macos)
 
 </div>
@@ -180,4 +180,4 @@ workspaces:
 
 ## License
 
-[MIT](LICENSE)
+[PolyForm Noncommercial 1.0.0](LICENSE) — free for personal and non-commercial use. For commercial licensing, please contact the author.
