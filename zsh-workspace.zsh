@@ -82,6 +82,37 @@ EOF
 }
 
 #--------------------------------------------------------------------#
+# iTerm2 Split Pane (AppleScript)                                    #
+#--------------------------------------------------------------------#
+
+_ws_split_pane() {
+  local direction="$1"  # vertical or horizontal
+  local dir="$2"
+  local cmd="$3"
+
+  # Expand ~
+  dir="${dir/#\~/$HOME}"
+
+  local script="cd ${dir}"
+  if [[ -n "$cmd" ]]; then
+    script="${script} && ${cmd}"
+  fi
+
+  osascript <<EOF
+tell application "iTerm2"
+  tell current window
+    tell current session of current tab
+      split ${direction}ly with default profile
+    end tell
+    tell current session of current tab
+      write text "${script}"
+    end tell
+  end tell
+end tell
+EOF
+}
+
+#--------------------------------------------------------------------#
 # Editor Launcher                                                    #
 #--------------------------------------------------------------------#
 
@@ -135,18 +166,47 @@ tab = data['tabs'][int(sys.argv[2])]
 dir_path = tab.get('dir', '~')
 cmd = tab.get('cmd', '')
 name = tab.get('name', '')
+split_list = json.dumps(tab.get('split', []))
 print(dir_path)
 print(cmd)
 print(name)
+print(split_list)
 " "$config" "$i")
 
-    local tab_dir tab_cmd tab_name
+    local tab_dir tab_cmd tab_name split_json
     tab_dir=$(echo "$tab_info" | sed -n '1p')
     tab_cmd=$(echo "$tab_info" | sed -n '2p')
     tab_name=$(echo "$tab_info" | sed -n '3p')
+    split_json=$(echo "$tab_info" | sed -n '4p')
 
     _ws_open_tab "$tab_dir" "$tab_cmd" "$tab_name"
     echo "  ✓ tab: ${tab_name:-$tab_dir}"
+
+    # Handle split panes within this tab
+    local split_count
+    split_count=$(python3 -c "import json,sys; print(len(json.loads(sys.argv[1])))" "$split_json")
+    local j=0
+    while (( j < split_count )); do
+      local pane_info
+      pane_info=$(python3 -c "
+import json, sys
+splits = json.loads(sys.argv[1])
+p = splits[int(sys.argv[2])]
+print(p.get('direction', 'vertical'))
+print(p.get('dir', '~'))
+print(p.get('cmd', ''))
+" "$split_json" "$j")
+
+      local pane_dir pane_cmd pane_direction
+      pane_direction=$(echo "$pane_info" | sed -n '1p')
+      pane_dir=$(echo "$pane_info" | sed -n '2p')
+      pane_cmd=$(echo "$pane_info" | sed -n '3p')
+
+      _ws_split_pane "$pane_direction" "$pane_dir" "$pane_cmd"
+      echo "    ✓ split ${pane_direction}: ${pane_cmd:-shell}"
+      (( j++ ))
+    done
+
     (( i++ ))
   done
 
