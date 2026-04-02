@@ -6,7 +6,7 @@ A zsh plugin for managing work scenarios. Define your workspaces in a YAML confi
 
 - **One-command launch** — `ws research` opens all tabs, runs commands, and starts your editor
 - **YAML config** — simple, readable workspace definitions
-- **iTerm2 integration** — creates named tabs via AppleScript
+- **iTerm2 integration** — creates named tabs and split panes via AppleScript
 - **Editor support** — VS Code, CodeFlicker, or any custom editor
 - **fzf selection** — run `ws` without arguments for interactive fuzzy search
 - **Tab completion** — workspace names auto-complete in zsh
@@ -72,8 +72,9 @@ workspaces:
       - name: claude
         dir: ~/projects/research
         cmd: claude
-      - name: code
-        dir: ~/projects/research
+        split:
+          - direction: vertical
+            dir: ~/projects/research
     editor:
       type: vscode
       path: ~/projects/research
@@ -98,6 +99,10 @@ workspaces:
 | `tabs[].name` | Tab title (optional) |
 | `tabs[].dir` | Working directory (`~` is expanded) |
 | `tabs[].cmd` | Command to run after cd (optional) |
+| `tabs[].split` | List of split panes within the tab (optional) |
+| `tabs[].split[].direction` | Split direction: `vertical` or `horizontal` (default: `vertical`) |
+| `tabs[].split[].dir` | Working directory for the pane |
+| `tabs[].split[].cmd` | Command to run in the pane (optional) |
 | `editor.type` | Editor type: `vscode`, `code`, `codeflicker`, `flick` |
 | `editor.path` | Path to open in editor |
 

@@ -7,8 +7,9 @@ workspaces:
       - name: claude
         dir: ~/projects/research
         cmd: claude
-      - name: code
-        dir: ~/projects/research
+        split:
+          - direction: vertical
+            dir: ~/projects/research
     editor:
       type: vscode
       path: ~/projects/research
