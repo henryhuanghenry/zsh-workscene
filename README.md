@@ -13,36 +13,56 @@ Define work scenes in YAML. Launch iTerm2 tabs, split panes, run commands, and o
 
 ---
 
+### What happens when you run `wkc research`?
+
+**Before:** You manually open terminal tabs, cd into directories, run commands, launch your editor...
+
+**After:** One command does it all.
+
 ```
 $ wkc research
 🚀 Launching workspace: research
-
-┌─────────────────────────────────────────────────────────────────┐
-│ iTerm2                                                          │
-│ ┌─────────────────────────────┬─────────────────────────────┐   │
-│ │ Tab: research               │                             │   │
-│ │                             │                             │   │
-│ │  $ claude                   │  $ _                        │   │
-│ │  Welcome to Claude Code...  │  ~/projects/research        │   │
-│ │                             │                             │   │
-│ │         (left pane)         │       (right pane)          │   │
-│ └─────────────────────────────┴─────────────────────────────┘   │
-│                                                                 │
-│ ┌───────────────────────────────────────────────────────────┐   │
-│ │ Tab: logs                                                 │   │
-│ │  $ tail -f logs/app.log                                   │   │
-│ └───────────────────────────────────────────────────────────┘   │
-└─────────────────────────────────────────────────────────────────┘
-
-┌─────────────────────────────────────────────────────────────────┐
-│ VS Code / CodeFlicker                                           │
-│  ~/projects/research                                            │
-└─────────────────────────────────────────────────────────────────┘
-
+  ✓ tab: research
+    ✓ split vertical: shell
+  ✓ tab: logs
+  ✓ editor: codeflicker → ~/projects/research
 ✅ Workspace research launched
 ```
 
-## Demo
+This creates the following layout automatically:
+
+```
+┌─ iTerm2 ────────────────────────────────────────────────────────┐
+│                                                                 │
+│  [ research ]  [ logs ]                          ← tabs         │
+│                                                                 │
+│  ┌──────────────────────────┬───────────────────────────────┐   │
+│  │                          │                               │   │
+│  │  $ claude                │  $ _                          │   │
+│  │  Welcome to Claude...    │  ~/projects/research          │   │
+│  │                          │                               │   │
+│  │  AI assistant ready      │  ready for git, build, etc.   │   │
+│  │                          │                               │   │
+│  └──────────────────────────┴───────────────────────────────┘   │
+│           left pane                    right pane                │
+│                       ↑ vertical split                          │
+└─────────────────────────────────────────────────────────────────┘
+
+┌─ CodeFlicker ───────────────────────────────────────────────────┐
+│  📂 ~/projects/research                                         │
+│  ├── src/                                                       │
+│  ├── tests/                                                     │
+│  └── ...                      ← editor opens project directory  │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+> All from a single YAML config. No scripts, no Automator, no clicking around.
+
+## Interactive Selection
+
+## Interactive Selection
+
+Run `wkc` without arguments to pick a workspace with fzf:
 
 ```
 $ wkc
