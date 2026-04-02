@@ -1,7 +1,7 @@
 # zsh-workspace — workspace scenario manager for iTerm2
-# https://github.com/huangyusheng/zsh-workspace
+# https://github.com/henryhuanghenry/zsh-workspace
 # v0.1.0
-# Copyright (c) 2026 huangyusheng
+# Copyright (c) 2026 henryhuanghenry
 # MIT License — see LICENSE file for details.
 
 WS_CONFIG="${WS_CONFIG:-$HOME/.zsh-workspace.yaml}"

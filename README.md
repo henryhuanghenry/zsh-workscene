@@ -22,7 +22,7 @@ A zsh plugin for managing work scenarios. Define your workspaces in a YAML confi
 ### Oh My Zsh
 
 ```bash
-git clone https://github.com/huangyusheng/zsh-workspace ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-workspace
+git clone https://github.com/henryhuanghenry/zsh-workspace ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-workspace
 ```
 
 Then add `zsh-workspace` to your plugins in `~/.zshrc`:
@@ -34,20 +34,20 @@ plugins=(... zsh-workspace)
 ### Zinit
 
 ```zsh
-zinit light huangyusheng/zsh-workspace
+zinit light henryhuanghenry/zsh-workspace
 ```
 
 ### Antidote
 
 ```zsh
 # In .zsh_plugins.txt:
-huangyusheng/zsh-workspace
+henryhuanghenry/zsh-workspace
 ```
 
 ### Manual
 
 ```bash
-git clone https://github.com/huangyusheng/zsh-workspace ~/.zsh-workspace
+git clone https://github.com/henryhuanghenry/zsh-workspace ~/.zsh-workspace
 echo 'source ~/.zsh-workspace/zsh-workspace.plugin.zsh' >> ~/.zshrc
 ```
 
@@ -70,13 +70,13 @@ workspaces:
   research:
     tabs:
       - name: claude
-        dir: ~/personal_code/research-agent
+        dir: ~/projects/research
         cmd: claude
       - name: code
-        dir: ~/personal_code/research-agent
+        dir: ~/projects/research
     editor:
       type: vscode
-      path: ~/personal_code/research-agent
+      path: ~/projects/research
 
   work:
     tabs:
