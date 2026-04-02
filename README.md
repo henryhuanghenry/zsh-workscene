@@ -1,0 +1,112 @@
+# zsh-workspace
+
+A zsh plugin for managing work scenarios. Define your workspaces in a YAML config, then launch them with a single command — opens iTerm2 tabs, runs commands, and starts your editor.
+
+## Features
+
+- **One-command launch** — `ws research` opens all tabs, runs commands, and starts your editor
+- **YAML config** — simple, readable workspace definitions
+- **iTerm2 integration** — creates named tabs via AppleScript
+- **Editor support** — VS Code, CodeFlicker, or any custom editor
+- **fzf selection** — run `ws` without arguments for interactive fuzzy search
+- **Tab completion** — workspace names auto-complete in zsh
+
+## Requirements
+
+- macOS + [iTerm2](https://iterm2.com)
+- Python 3 with `PyYAML` (`pip install pyyaml`)
+- [fzf](https://github.com/junegunn/fzf) (optional, for interactive selection)
+
+## Installation
+
+### Oh My Zsh
+
+```bash
+git clone https://github.com/huangyusheng/zsh-workspace ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-workspace
+```
+
+Then add `zsh-workspace` to your plugins in `~/.zshrc`:
+
+```zsh
+plugins=(... zsh-workspace)
+```
+
+### Zinit
+
+```zsh
+zinit light huangyusheng/zsh-workspace
+```
+
+### Antidote
+
+```zsh
+# In .zsh_plugins.txt:
+huangyusheng/zsh-workspace
+```
+
+### Manual
+
+```bash
+git clone https://github.com/huangyusheng/zsh-workspace ~/.zsh-workspace
+echo 'source ~/.zsh-workspace/zsh-workspace.plugin.zsh' >> ~/.zshrc
+```
+
+## Usage
+
+```bash
+ws                # Interactive selection (requires fzf)
+ws <name>         # Launch a workspace by name
+ws list           # List all available workspaces
+ws edit           # Open config file in $EDITOR
+ws help           # Show usage info
+```
+
+## Configuration
+
+Create `~/.zsh-workspace.yaml`:
+
+```yaml
+workspaces:
+  research:
+    tabs:
+      - name: claude
+        dir: ~/personal_code/research-agent
+        cmd: claude
+      - name: code
+        dir: ~/personal_code/research-agent
+    editor:
+      type: vscode
+      path: ~/personal_code/research-agent
+
+  work:
+    tabs:
+      - name: dev
+        dir: ~/work/project
+      - name: logs
+        dir: ~/work/project
+        cmd: tail -f logs/app.log
+    editor:
+      type: codeflicker
+      path: ~/work/project
+```
+
+### Workspace Fields
+
+| Field | Description |
+|-------|-------------|
+| `tabs` | List of iTerm2 tabs to open |
+| `tabs[].name` | Tab title (optional) |
+| `tabs[].dir` | Working directory (`~` is expanded) |
+| `tabs[].cmd` | Command to run after cd (optional) |
+| `editor.type` | Editor type: `vscode`, `code`, `codeflicker`, `flick` |
+| `editor.path` | Path to open in editor |
+
+### Environment Variable
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `WS_CONFIG` | `~/.zsh-workspace.yaml` | Path to the config file |
+
+## License
+
+[MIT](LICENSE)

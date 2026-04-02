@@ -1,0 +1,233 @@
+# zsh-workspace — workspace scenario manager for iTerm2
+# https://github.com/huangyusheng/zsh-workspace
+# v0.1.0
+# Copyright (c) 2026 huangyusheng
+# MIT License — see LICENSE file for details.
+
+WS_CONFIG="${WS_CONFIG:-$HOME/.zsh-workspace.yaml}"
+
+#--------------------------------------------------------------------#
+# YAML Config Parser (Python)                                        #
+#--------------------------------------------------------------------#
+
+_ws_parse() {
+  python3 -c "
+import yaml, json, sys, os
+
+config_path = os.path.expanduser('$WS_CONFIG')
+if not os.path.exists(config_path):
+    print('ERROR: config not found: ' + config_path, file=sys.stderr)
+    sys.exit(1)
+
+with open(config_path) as f:
+    data = yaml.safe_load(f)
+
+workspaces = data.get('workspaces', {})
+cmd = sys.argv[1] if len(sys.argv) > 1 else 'list'
+
+if cmd == 'list':
+    for name in workspaces:
+        print(name)
+elif cmd == 'get':
+    name = sys.argv[2]
+    if name not in workspaces:
+        print('ERROR: workspace not found: ' + name, file=sys.stderr)
+        sys.exit(1)
+    print(json.dumps(workspaces[name]))
+" "$@"
+}
+
+#--------------------------------------------------------------------#
+# iTerm2 Tab Management (AppleScript)                                #
+#--------------------------------------------------------------------#
+
+_ws_open_tab() {
+  local dir="$1"
+  local cmd="$2"
+  local tab_name="$3"
+
+  # Expand ~
+  dir="${dir/#\~/$HOME}"
+
+  local script="cd ${dir}"
+  if [[ -n "$cmd" ]]; then
+    script="${script} && ${cmd}"
+  fi
+
+  osascript <<EOF
+tell application "iTerm2"
+  tell current window
+    create tab with default profile
+    tell current session of current tab
+      write text "${script}"
+    end tell
+  end tell
+end tell
+EOF
+
+  # Set tab title
+  if [[ -n "$tab_name" ]]; then
+    osascript <<EOF
+tell application "iTerm2"
+  tell current window
+    tell current tab
+      tell current session
+        set name to "${tab_name}"
+      end tell
+    end tell
+  end tell
+end tell
+EOF
+  fi
+}
+
+#--------------------------------------------------------------------#
+# Editor Launcher                                                    #
+#--------------------------------------------------------------------#
+
+_ws_open_editor() {
+  local editor_type="$1"
+  local editor_path="$2"
+
+  # Expand ~
+  editor_path="${editor_path/#\~/$HOME}"
+
+  case "$editor_type" in
+    vscode|code)
+      code "$editor_path"
+      ;;
+    codeflicker|flick)
+      flick "$editor_path"
+      ;;
+    *)
+      echo "ws: unknown editor type: $editor_type" >&2
+      ;;
+  esac
+}
+
+#--------------------------------------------------------------------#
+# Workspace Launcher                                                 #
+#--------------------------------------------------------------------#
+
+_ws_launch() {
+  local name="$1"
+  local config
+  config=$(_ws_parse get "$name") || return 1
+
+  echo "🚀 Launching workspace: $name"
+
+  # Parse tab count
+  local tab_count
+  tab_count=$(python3 -c "
+import json, sys
+data = json.loads(sys.argv[1])
+tabs = data.get('tabs', [])
+print(len(tabs))
+" "$config")
+
+  local i=0
+  while (( i < tab_count )); do
+    local tab_info
+    tab_info=$(python3 -c "
+import json, sys, os
+data = json.loads(sys.argv[1])
+tab = data['tabs'][int(sys.argv[2])]
+dir_path = tab.get('dir', '~')
+cmd = tab.get('cmd', '')
+name = tab.get('name', '')
+print(dir_path)
+print(cmd)
+print(name)
+" "$config" "$i")
+
+    local tab_dir tab_cmd tab_name
+    tab_dir=$(echo "$tab_info" | sed -n '1p')
+    tab_cmd=$(echo "$tab_info" | sed -n '2p')
+    tab_name=$(echo "$tab_info" | sed -n '3p')
+
+    _ws_open_tab "$tab_dir" "$tab_cmd" "$tab_name"
+    echo "  ✓ tab: ${tab_name:-$tab_dir}"
+    (( i++ ))
+  done
+
+  # Open editor
+  local editor_info
+  editor_info=$(python3 -c "
+import json, sys
+data = json.loads(sys.argv[1])
+editor = data.get('editor')
+if editor:
+    print(editor.get('type', ''))
+    print(editor.get('path', ''))
+else:
+    print('')
+    print('')
+" "$config")
+
+  local editor_type editor_path
+  editor_type=$(echo "$editor_info" | sed -n '1p')
+  editor_path=$(echo "$editor_info" | sed -n '2p')
+
+  if [[ -n "$editor_type" && -n "$editor_path" ]]; then
+    _ws_open_editor "$editor_type" "$editor_path"
+    echo "  ✓ editor: $editor_type → $editor_path"
+  fi
+
+  echo "✅ Workspace $name launched"
+}
+
+#--------------------------------------------------------------------#
+# Main Command                                                       #
+#--------------------------------------------------------------------#
+
+ws() {
+  case "$1" in
+    list)
+      echo "Available workspaces:"
+      _ws_parse list | while read -r name; do
+        echo "  - $name"
+      done
+      ;;
+    edit)
+      ${EDITOR:-vim} "$WS_CONFIG"
+      ;;
+    help|--help|-h)
+      echo "Usage: ws [name|list|edit]"
+      echo ""
+      echo "  ws           Interactive selection (requires fzf)"
+      echo "  ws <name>    Launch a workspace"
+      echo "  ws list      List all workspaces"
+      echo "  ws edit      Open config file in \$EDITOR"
+      echo ""
+      echo "Config: $WS_CONFIG"
+      ;;
+    "")
+      # No argument: fzf interactive selection
+      if ! command -v fzf &>/dev/null; then
+        echo "ws: fzf not found, please specify a workspace name or install fzf" >&2
+        ws list
+        return 1
+      fi
+      local selected
+      selected=$(_ws_parse list | fzf --prompt="Select workspace: " --height=40% --reverse)
+      if [[ -n "$selected" ]]; then
+        _ws_launch "$selected"
+      fi
+      ;;
+    *)
+      _ws_launch "$1"
+      ;;
+  esac
+}
+
+#--------------------------------------------------------------------#
+# Completion                                                         #
+#--------------------------------------------------------------------#
+
+_ws_completion() {
+  local -a workspace_names
+  workspace_names=(${(f)"$(_ws_parse list 2>/dev/null)"})
+  workspace_names+=(list edit help)
+  _describe 'workspace' workspace_names
+}
+compdef _ws_completion ws

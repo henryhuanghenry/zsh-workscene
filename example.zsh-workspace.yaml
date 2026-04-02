@@ -1,0 +1,25 @@
+# Example workspace configuration
+# Copy this file to ~/.zsh-workspace.yaml and customize
+
+workspaces:
+  research:
+    tabs:
+      - name: claude
+        dir: ~/projects/research
+        cmd: claude
+      - name: code
+        dir: ~/projects/research
+    editor:
+      type: vscode
+      path: ~/projects/research
+
+  # work:
+  #   tabs:
+  #     - name: dev
+  #       dir: ~/work/project
+  #     - name: logs
+  #       dir: ~/work/project
+  #       cmd: tail -f logs/app.log
+  #   editor:
+  #     type: codeflicker
+  #     path: ~/work/project
