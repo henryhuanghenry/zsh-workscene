@@ -28,6 +28,13 @@ cmd = sys.argv[1] if len(sys.argv) > 1 else 'list'
 if cmd == 'list':
     for name in workspaces:
         print(name)
+elif cmd == 'list_detail':
+    for name, ws in workspaces.items():
+        desc = ws.get('description', '')
+        if desc:
+            print(f'{name}\t{desc}')
+        else:
+            print(name)
 elif cmd == 'get':
     name = sys.argv[2]
     if name not in workspaces:
@@ -268,8 +275,14 @@ wkc() {
         wkc list
         return 1
       fi
+      echo "Config: $WKC_CONFIG"
+      echo ""
       local selected
-      selected=$(_wkc_parse list | fzf --prompt="Select workspace: " --height=40% --reverse)
+      selected=$(_wkc_parse list_detail | column -t -s $'\t' | fzf \
+        --prompt="Select workspace: " \
+        --height=40% \
+        --reverse \
+        --header="↑/↓: select | Enter: launch | Esc: exit" | awk '{print $1}')
       if [[ -n "$selected" ]]; then
         _wkc_launch "$selected"
       fi
