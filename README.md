@@ -1,14 +1,14 @@
-# zsh-workspace
+# zsh-workscene
 
-A zsh plugin for managing work scenarios. Define your workspaces in a YAML config, then launch them with a single command — opens iTerm2 tabs, runs commands, and starts your editor.
+A zsh plugin for managing work scenes. Define your workspaces in a YAML config, then launch them with a single command — opens iTerm2 tabs, runs commands, and starts your editor.
 
 ## Features
 
-- **One-command launch** — `ws research` opens all tabs, runs commands, and starts your editor
+- **One-command launch** — `wkc research` opens all tabs, runs commands, and starts your editor
 - **YAML config** — simple, readable workspace definitions
 - **iTerm2 integration** — creates named tabs and split panes via AppleScript
 - **Editor support** — VS Code, CodeFlicker, or any custom editor
-- **fzf selection** — run `ws` without arguments for interactive fuzzy search
+- **fzf selection** — run `wkc` without arguments for interactive fuzzy search
 - **Tab completion** — workspace names auto-complete in zsh
 
 ## Requirements
@@ -22,48 +22,48 @@ A zsh plugin for managing work scenarios. Define your workspaces in a YAML confi
 ### Oh My Zsh
 
 ```bash
-git clone https://github.com/henryhuanghenry/zsh-workspace ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-workspace
+git clone https://github.com/henryhuanghenry/zsh-workscene ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-workscene
 ```
 
-Then add `zsh-workspace` to your plugins in `~/.zshrc`:
+Then add `zsh-workscene` to your plugins in `~/.zshrc`:
 
 ```zsh
-plugins=(... zsh-workspace)
+plugins=(... zsh-workscene)
 ```
 
 ### Zinit
 
 ```zsh
-zinit light henryhuanghenry/zsh-workspace
+zinit light henryhuanghenry/zsh-workscene
 ```
 
 ### Antidote
 
 ```zsh
 # In .zsh_plugins.txt:
-henryhuanghenry/zsh-workspace
+henryhuanghenry/zsh-workscene
 ```
 
 ### Manual
 
 ```bash
-git clone https://github.com/henryhuanghenry/zsh-workspace ~/.zsh-workspace
-echo 'source ~/.zsh-workspace/zsh-workspace.plugin.zsh' >> ~/.zshrc
+git clone https://github.com/henryhuanghenry/zsh-workscene ~/.zsh-workscene
+echo 'source ~/.zsh-workscene/zsh-workscene.plugin.zsh' >> ~/.zshrc
 ```
 
 ## Usage
 
 ```bash
-ws                # Interactive selection (requires fzf)
-ws <name>         # Launch a workspace by name
-ws list           # List all available workspaces
-ws edit           # Open config file in $EDITOR
-ws help           # Show usage info
+wkc                # Interactive selection (requires fzf)
+wkc <name>         # Launch a workspace by name
+wkc list           # List all available workspaces
+wkc edit           # Open config file in $EDITOR
+wkc help           # Show usage info
 ```
 
 ## Configuration
 
-Create `~/.zsh-workspace.yaml`:
+Create `~/.zsh-workscene.yaml`:
 
 ```yaml
 workspaces:
@@ -110,7 +110,7 @@ workspaces:
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `WS_CONFIG` | `~/.zsh-workspace.yaml` | Path to the config file |
+| `WKC_CONFIG` | `~/.zsh-workscene.yaml` | Path to the config file |
 
 ## License
 

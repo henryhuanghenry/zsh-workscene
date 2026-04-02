@@ -1,20 +1,20 @@
-# zsh-workspace — workspace scenario manager for iTerm2
-# https://github.com/henryhuanghenry/zsh-workspace
-# v0.1.0
+# zsh-workscene — work scene manager for iTerm2
+# https://github.com/henryhuanghenry/zsh-workscene
+# v0.2.0
 # Copyright (c) 2026 henryhuanghenry
 # MIT License — see LICENSE file for details.
 
-WS_CONFIG="${WS_CONFIG:-$HOME/.zsh-workspace.yaml}"
+WKC_CONFIG="${WKC_CONFIG:-$HOME/.zsh-workscene.yaml}"
 
 #--------------------------------------------------------------------#
 # YAML Config Parser (Python)                                        #
 #--------------------------------------------------------------------#
 
-_ws_parse() {
+_wkc_parse() {
   python3 -c "
 import yaml, json, sys, os
 
-config_path = os.path.expanduser('$WS_CONFIG')
+config_path = os.path.expanduser('$WKC_CONFIG')
 if not os.path.exists(config_path):
     print('ERROR: config not found: ' + config_path, file=sys.stderr)
     sys.exit(1)
@@ -41,7 +41,7 @@ elif cmd == 'get':
 # iTerm2 Tab Management (AppleScript)                                #
 #--------------------------------------------------------------------#
 
-_ws_open_tab() {
+_wkc_open_tab() {
   local dir="$1"
   local cmd="$2"
   local tab_name="$3"
@@ -85,7 +85,7 @@ EOF
 # iTerm2 Split Pane (AppleScript)                                    #
 #--------------------------------------------------------------------#
 
-_ws_split_pane() {
+_wkc_split_pane() {
   local direction="$1"  # vertical or horizontal
   local dir="$2"
   local cmd="$3"
@@ -116,7 +116,7 @@ EOF
 # Editor Launcher                                                    #
 #--------------------------------------------------------------------#
 
-_ws_open_editor() {
+_wkc_open_editor() {
   local editor_type="$1"
   local editor_path="$2"
 
@@ -131,7 +131,7 @@ _ws_open_editor() {
       flick "$editor_path"
       ;;
     *)
-      echo "ws: unknown editor type: $editor_type" >&2
+      echo "wkc: unknown editor type: $editor_type" >&2
       ;;
   esac
 }
@@ -140,10 +140,10 @@ _ws_open_editor() {
 # Workspace Launcher                                                 #
 #--------------------------------------------------------------------#
 
-_ws_launch() {
+_wkc_launch() {
   local name="$1"
   local config
-  config=$(_ws_parse get "$name") || return 1
+  config=$(_wkc_parse get "$name") || return 1
 
   echo "🚀 Launching workspace: $name"
 
@@ -179,7 +179,7 @@ print(split_list)
     tab_name=$(echo "$tab_info" | sed -n '3p')
     split_json=$(echo "$tab_info" | sed -n '4p')
 
-    _ws_open_tab "$tab_dir" "$tab_cmd" "$tab_name"
+    _wkc_open_tab "$tab_dir" "$tab_cmd" "$tab_name"
     echo "  ✓ tab: ${tab_name:-$tab_dir}"
 
     # Handle split panes within this tab
@@ -202,7 +202,7 @@ print(p.get('cmd', ''))
       pane_dir=$(echo "$pane_info" | sed -n '2p')
       pane_cmd=$(echo "$pane_info" | sed -n '3p')
 
-      _ws_split_pane "$pane_direction" "$pane_dir" "$pane_cmd"
+      _wkc_split_pane "$pane_direction" "$pane_dir" "$pane_cmd"
       echo "    ✓ split ${pane_direction}: ${pane_cmd:-shell}"
       (( j++ ))
     done
@@ -229,7 +229,7 @@ else:
   editor_path=$(echo "$editor_info" | sed -n '2p')
 
   if [[ -n "$editor_type" && -n "$editor_path" ]]; then
-    _ws_open_editor "$editor_type" "$editor_path"
+    _wkc_open_editor "$editor_type" "$editor_path"
     echo "  ✓ editor: $editor_type → $editor_path"
   fi
 
@@ -240,42 +240,42 @@ else:
 # Main Command                                                       #
 #--------------------------------------------------------------------#
 
-ws() {
+wkc() {
   case "$1" in
     list)
       echo "Available workspaces:"
-      _ws_parse list | while read -r name; do
+      _wkc_parse list | while read -r name; do
         echo "  - $name"
       done
       ;;
     edit)
-      ${EDITOR:-vim} "$WS_CONFIG"
+      ${EDITOR:-vim} "$WKC_CONFIG"
       ;;
     help|--help|-h)
-      echo "Usage: ws [name|list|edit]"
+      echo "Usage: wkc [name|list|edit]"
       echo ""
-      echo "  ws           Interactive selection (requires fzf)"
-      echo "  ws <name>    Launch a workspace"
-      echo "  ws list      List all workspaces"
-      echo "  ws edit      Open config file in \$EDITOR"
+      echo "  wkc           Interactive selection (requires fzf)"
+      echo "  wkc <name>    Launch a workspace"
+      echo "  wkc list      List all workspaces"
+      echo "  wkc edit      Open config file in \$EDITOR"
       echo ""
-      echo "Config: $WS_CONFIG"
+      echo "Config: $WKC_CONFIG"
       ;;
     "")
       # No argument: fzf interactive selection
       if ! command -v fzf &>/dev/null; then
-        echo "ws: fzf not found, please specify a workspace name or install fzf" >&2
-        ws list
+        echo "wkc: fzf not found, please specify a workspace name or install fzf" >&2
+        wkc list
         return 1
       fi
       local selected
-      selected=$(_ws_parse list | fzf --prompt="Select workspace: " --height=40% --reverse)
+      selected=$(_wkc_parse list | fzf --prompt="Select workspace: " --height=40% --reverse)
       if [[ -n "$selected" ]]; then
-        _ws_launch "$selected"
+        _wkc_launch "$selected"
       fi
       ;;
     *)
-      _ws_launch "$1"
+      _wkc_launch "$1"
       ;;
   esac
 }
@@ -284,10 +284,10 @@ ws() {
 # Completion                                                         #
 #--------------------------------------------------------------------#
 
-_ws_completion() {
+_wkc_completion() {
   local -a workspace_names
-  workspace_names=(${(f)"$(_ws_parse list 2>/dev/null)"})
+  workspace_names=(${(f)"$(_wkc_parse list 2>/dev/null)"})
   workspace_names+=(list edit help)
   _describe 'workspace' workspace_names
 }
-compdef _ws_completion ws
+compdef _wkc_completion wkc
