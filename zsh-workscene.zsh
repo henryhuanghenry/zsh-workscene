@@ -12,7 +12,7 @@ WKC_CONFIG="${WKC_CONFIG:-$HOME/.zsh-workscene.yaml}"
 
 _wkc_parse() {
   python3 -c "
-import yaml, json, sys, os
+import yaml, json, sys, os, copy
 
 config_path = os.path.expanduser('$WKC_CONFIG')
 if not os.path.exists(config_path):
@@ -23,6 +23,35 @@ with open(config_path) as f:
     data = yaml.safe_load(f)
 
 workspaces = data.get('workspaces', {})
+
+def deep_merge(base, override):
+    result = copy.deepcopy(base)
+    for k, v in override.items():
+        if k == 'extends':
+            continue
+        if k in result and isinstance(result[k], dict) and isinstance(v, dict):
+            result[k] = deep_merge(result[k], v)
+        else:
+            result[k] = copy.deepcopy(v)
+    return result
+
+def resolve(name, seen=None):
+    if seen is None:
+        seen = set()
+    if name in seen:
+        print('ERROR: circular extends: ' + name, file=sys.stderr)
+        sys.exit(1)
+    seen.add(name)
+    ws = workspaces.get(name)
+    if ws is None:
+        print('ERROR: workspace not found: ' + name, file=sys.stderr)
+        sys.exit(1)
+    parent = ws.get('extends')
+    if parent:
+        base = resolve(parent, seen)
+        return deep_merge(base, ws)
+    return copy.deepcopy(ws)
+
 cmd = sys.argv[1] if len(sys.argv) > 1 else 'list'
 
 if cmd == 'list':
@@ -37,10 +66,8 @@ elif cmd == 'list_detail':
             print(name)
 elif cmd == 'get':
     name = sys.argv[2]
-    if name not in workspaces:
-        print('ERROR: workspace not found: ' + name, file=sys.stderr)
-        sys.exit(1)
-    print(json.dumps(workspaces[name]))
+    result = resolve(name)
+    print(json.dumps(result))
 " "$@"
 }
 
@@ -52,11 +79,16 @@ _wkc_open_tab() {
   local dir="$1"
   local cmd="$2"
   local tab_name="$3"
+  local env_script="$4"
 
   # Expand ~
   dir="${dir/#\~/$HOME}"
 
-  local script="cd ${dir}"
+  local script=""
+  if [[ -n "$env_script" ]]; then
+    script="${env_script} && "
+  fi
+  script="${script}cd ${dir}"
   if [[ -n "$cmd" ]]; then
     script="${script} && ${cmd}"
   fi
@@ -96,11 +128,16 @@ _wkc_split_pane() {
   local direction="$1"  # vertical or horizontal
   local dir="$2"
   local cmd="$3"
+  local env_script="$4"
 
   # Expand ~
   dir="${dir/#\~/$HOME}"
 
-  local script="cd ${dir}"
+  local script=""
+  if [[ -n "$env_script" ]]; then
+    script="${env_script} && "
+  fi
+  script="${script}cd ${dir}"
   if [[ -n "$cmd" ]]; then
     script="${script} && ${cmd}"
   fi
@@ -120,7 +157,57 @@ EOF
 }
 
 #--------------------------------------------------------------------#
-# Editor Launcher                                                    #
+# Workspace Stop (close tabs by name)                                #
+#--------------------------------------------------------------------#
+
+_wkc_stop() {
+  local name="$1"
+  local config
+  config=$(_wkc_parse get "$name") || return 1
+
+  # Collect tab names
+  local tab_names
+  tab_names=$(python3 -c "
+import json, sys
+data = json.loads(sys.argv[1])
+tabs = data.get('tabs', [])
+for tab in tabs:
+    n = tab.get('name', '')
+    if n:
+        print(n)
+" "$config")
+
+  if [[ -z "$tab_names" ]]; then
+    echo "wkc: no named tabs found for workspace: $name" >&2
+    return 1
+  fi
+
+  echo "🛑 Stopping workspace: $name"
+
+  echo "$tab_names" | while read -r tname; do
+    osascript <<EOF
+tell application "iTerm2"
+  tell current window
+    set tabList to tabs
+    repeat with i from (count of tabList) to 1 by -1
+      set t to item i of tabList
+      repeat with s in sessions of t
+        if name of s is "${tname}" then
+          close t
+          exit repeat
+        end if
+      end repeat
+    end repeat
+  end tell
+end tell
+EOF
+    echo "  ✓ closed tab: $tname"
+  done
+
+  echo "✅ Workspace $name stopped"
+}
+
+#--------------------------------------------------------------------#
 #--------------------------------------------------------------------#
 
 _wkc_open_editor() {
@@ -154,6 +241,18 @@ _wkc_launch() {
 
   echo "🚀 Launching workspace: $name"
 
+  # Parse env variables
+  local env_script
+  env_script=$(python3 -c "
+import json, sys
+data = json.loads(sys.argv[1])
+env = data.get('env', {})
+parts = []
+for k, v in env.items():
+    parts.append(f'export {k}={v}')
+print(' && '.join(parts))
+" "$config")
+
   # Parse tab count
   local tab_count
   tab_count=$(python3 -c "
@@ -186,7 +285,7 @@ print(split_list)
     tab_name=$(echo "$tab_info" | sed -n '3p')
     split_json=$(echo "$tab_info" | sed -n '4p')
 
-    _wkc_open_tab "$tab_dir" "$tab_cmd" "$tab_name"
+    _wkc_open_tab "$tab_dir" "$tab_cmd" "$tab_name" "$env_script"
     echo "  ✓ tab: ${tab_name:-$tab_dir}"
 
     # Handle split panes within this tab
@@ -209,7 +308,7 @@ print(p.get('cmd', ''))
       pane_dir=$(echo "$pane_info" | sed -n '2p')
       pane_cmd=$(echo "$pane_info" | sed -n '3p')
 
-      _wkc_split_pane "$pane_direction" "$pane_dir" "$pane_cmd"
+      _wkc_split_pane "$pane_direction" "$pane_dir" "$pane_cmd" "$env_script"
       echo "    ✓ split ${pane_direction}: ${pane_cmd:-shell}"
       (( j++ ))
     done
@@ -259,12 +358,13 @@ wkc() {
       ${EDITOR:-vim} "$WKC_CONFIG"
       ;;
     help|--help|-h)
-      echo "Usage: wkc [name|list|edit]"
+      echo "Usage: wkc [name|list|stop|edit]"
       echo ""
-      echo "  wkc           Interactive selection (requires fzf)"
-      echo "  wkc <name>    Launch a workspace"
-      echo "  wkc list      List all workspaces"
-      echo "  wkc edit      Open config file in \$EDITOR"
+      echo "  wkc              Interactive selection (requires fzf)"
+      echo "  wkc <name>       Launch a workspace"
+      echo "  wkc stop <name>  Stop a workspace (close its tabs)"
+      echo "  wkc list         List all workspaces"
+      echo "  wkc edit         Open config file in \$EDITOR"
       echo ""
       echo "Config: $WKC_CONFIG"
       ;;
@@ -288,7 +388,15 @@ wkc() {
       fi
       ;;
     *)
-      _wkc_launch "$1"
+      if [[ "$1" == "stop" ]]; then
+        if [[ -z "$2" ]]; then
+          echo "Usage: wkc stop <name>" >&2
+          return 1
+        fi
+        _wkc_stop "$2"
+      else
+        _wkc_launch "$1"
+      fi
       ;;
   esac
 }
@@ -300,7 +408,7 @@ wkc() {
 _wkc_completion() {
   local -a workspace_names
   workspace_names=(${(f)"$(_wkc_parse list 2>/dev/null)"})
-  workspace_names+=(list edit help)
+  workspace_names+=(list stop edit help)
   _describe 'workspace' workspace_names
 }
 compdef _wkc_completion wkc

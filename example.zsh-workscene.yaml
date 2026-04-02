@@ -3,6 +3,9 @@
 
 workspaces:
   research:
+    description: Research agent dev environment
+    env:
+      NODE_ENV: development
     tabs:
       - name: claude
         dir: ~/projects/research
@@ -15,6 +18,7 @@ workspaces:
       path: ~/projects/research
 
   # work:
+  #   description: Backend API project
   #   tabs:
   #     - name: dev
   #       dir: ~/work/project
@@ -24,3 +28,10 @@ workspaces:
   #   editor:
   #     type: codeflicker
   #     path: ~/work/project
+
+  # Workspace inheritance example:
+  # work-fe:
+  #   description: Frontend (inherits from work)
+  #   extends: work
+  #   editor:
+  #     type: vscode

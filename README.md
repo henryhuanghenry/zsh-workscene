@@ -30,6 +30,9 @@ Config: ~/.zsh-workscene.yaml
 ## Features
 
 - **One-command launch** — `wkc research` opens all tabs, runs commands, and starts your editor
+- **One-command stop** — `wkc stop research` closes all tabs for a workspace
+- **Environment variables** — set per-workspace env vars, auto-injected into every tab and pane
+- **Workspace inheritance** — `extends` lets workspaces inherit and override a base config
 - **YAML config** — simple, readable workspace definitions
 - **iTerm2 integration** — creates named tabs and split panes via AppleScript
 - **Editor support** — VS Code, CodeFlicker, or any custom editor
@@ -117,11 +120,12 @@ wkc myproject
 ## Usage
 
 ```bash
-wkc                # Interactive selection (requires fzf)
-wkc <name>         # Launch a workspace by name
-wkc list           # List all available workspaces
-wkc edit           # Open config file in $EDITOR
-wkc help           # Show usage info
+wkc                   # Interactive selection (requires fzf)
+wkc <name>            # Launch a workspace by name
+wkc stop <name>       # Stop a workspace (close its tabs)
+wkc list              # List all available workspaces
+wkc edit              # Open config file in $EDITOR
+wkc help              # Show usage info
 ```
 
 ## Configuration
@@ -132,6 +136,9 @@ wkc help           # Show usage info
 workspaces:
   research:
     description: Research agent dev environment
+    env:
+      OPENAI_API_KEY: sk-xxx
+      NODE_ENV: development
     tabs:
       - name: claude
         dir: ~/projects/research
@@ -154,6 +161,12 @@ workspaces:
     editor:
       type: codeflicker
       path: ~/work/project
+
+  work-fe:
+    description: Frontend (inherits from work)
+    extends: work
+    editor:
+      type: vscode
 ```
 
 ### Reference
@@ -161,6 +174,8 @@ workspaces:
 | Field | Description |
 |-------|-------------|
 | `description` | Brief description shown in fzf selector (optional) |
+| `extends` | Name of parent workspace to inherit from (optional) |
+| `env` | Key-value map of environment variables to export (optional) |
 | `tabs` | List of iTerm2 tabs to open |
 | `tabs[].name` | Tab title (optional) |
 | `tabs[].dir` | Working directory (`~` is expanded) |
