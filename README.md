@@ -1,6 +1,31 @@
+<div align="center">
+
 # zsh-workscene
 
-A zsh plugin for managing work scenes. Define your workspaces in a YAML config, then launch them with a single command — opens iTerm2 tabs, runs commands, and starts your editor.
+**One command to set the stage for your work.**
+
+Define work scenes in YAML. Launch iTerm2 tabs, split panes, run commands, and open your editor — all at once.
+
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![Platform: macOS](https://img.shields.io/badge/Platform-macOS-lightgrey.svg)](https://www.apple.com/macos)
+
+</div>
+
+---
+
+## Demo
+
+```
+$ wkc
+
+Config: ~/.zsh-workscene.yaml
+
+  research    Research agent dev environment
+  work        Backend API project
+> deploy      Production deployment tools
+
+  ↑/↓: select | Enter: launch | Esc: exit
+```
 
 ## Features
 
@@ -14,41 +39,79 @@ A zsh plugin for managing work scenes. Define your workspaces in a YAML config, 
 ## Requirements
 
 - macOS + [iTerm2](https://iterm2.com)
-- Python 3 with `PyYAML` (`pip install pyyaml`)
+- Python 3 with [PyYAML](https://pypi.org/project/PyYAML/) (`pip install pyyaml`)
 - [fzf](https://github.com/junegunn/fzf) (optional, for interactive selection)
 
 ## Installation
 
-### Oh My Zsh
+<details>
+<summary><b>Oh My Zsh</b></summary>
 
 ```bash
-git clone https://github.com/henryhuanghenry/zsh-workscene ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-workscene
+git clone https://github.com/henryhuanghenry/zsh-workscene \
+  ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-workscene
 ```
 
-Then add `zsh-workscene` to your plugins in `~/.zshrc`:
+Add to `~/.zshrc`:
 
 ```zsh
 plugins=(... zsh-workscene)
 ```
 
-### Zinit
+</details>
+
+<details>
+<summary><b>Zinit</b></summary>
 
 ```zsh
 zinit light henryhuanghenry/zsh-workscene
 ```
 
-### Antidote
+</details>
+
+<details>
+<summary><b>Antidote</b></summary>
 
 ```zsh
 # In .zsh_plugins.txt:
 henryhuanghenry/zsh-workscene
 ```
 
-### Manual
+</details>
+
+<details>
+<summary><b>Manual</b></summary>
 
 ```bash
 git clone https://github.com/henryhuanghenry/zsh-workscene ~/.zsh-workscene
 echo 'source ~/.zsh-workscene/zsh-workscene.plugin.zsh' >> ~/.zshrc
+```
+
+</details>
+
+## Quick Start
+
+**1.** Create `~/.zsh-workscene.yaml`:
+
+```yaml
+workspaces:
+  myproject:
+    description: My awesome project
+    tabs:
+      - name: dev
+        dir: ~/projects/myapp
+      - name: server
+        dir: ~/projects/myapp
+        cmd: npm run dev
+    editor:
+      type: vscode
+      path: ~/projects/myapp
+```
+
+**2.** Launch it:
+
+```bash
+wkc myproject
 ```
 
 ## Usage
@@ -63,11 +126,12 @@ wkc help           # Show usage info
 
 ## Configuration
 
-Create `~/.zsh-workscene.yaml`:
+### Full Example
 
 ```yaml
 workspaces:
   research:
+    description: Research agent dev environment
     tabs:
       - name: claude
         dir: ~/projects/research
@@ -80,6 +144,7 @@ workspaces:
       path: ~/projects/research
 
   work:
+    description: Backend API project
     tabs:
       - name: dev
         dir: ~/work/project
@@ -91,19 +156,20 @@ workspaces:
       path: ~/work/project
 ```
 
-### Workspace Fields
+### Reference
 
 | Field | Description |
 |-------|-------------|
+| `description` | Brief description shown in fzf selector (optional) |
 | `tabs` | List of iTerm2 tabs to open |
 | `tabs[].name` | Tab title (optional) |
 | `tabs[].dir` | Working directory (`~` is expanded) |
 | `tabs[].cmd` | Command to run after cd (optional) |
 | `tabs[].split` | List of split panes within the tab (optional) |
-| `tabs[].split[].direction` | Split direction: `vertical` or `horizontal` (default: `vertical`) |
+| `tabs[].split[].direction` | `vertical` or `horizontal` (default: `vertical`) |
 | `tabs[].split[].dir` | Working directory for the pane |
 | `tabs[].split[].cmd` | Command to run in the pane (optional) |
-| `editor.type` | Editor type: `vscode`, `code`, `codeflicker`, `flick` |
+| `editor.type` | `vscode` / `code` / `codeflicker` / `flick` |
 | `editor.path` | Path to open in editor |
 
 ### Environment Variable
