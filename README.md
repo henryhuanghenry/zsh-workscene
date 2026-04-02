@@ -2,9 +2,9 @@
 
 # zsh-workscene
 
-**One command to set the stage for your work.**
+**Stop opening shells, IDEs, and apps one by one. Configure once, launch everything in one command.**
 
-Define work scenes in YAML. Launch iTerm2 tabs, split panes, run commands, and open your editor — all at once.
+**告别手动逐个打开终端、编辑器和应用。通过配置记忆你的工作场景，一键全部就位。**
 
 [![License: PolyForm Noncommercial](https://img.shields.io/badge/License-PolyForm%20Noncommercial-blue.svg)](LICENSE)
 [![Platform: macOS](https://img.shields.io/badge/Platform-macOS-lightgrey.svg)](https://www.apple.com/macos)
