@@ -25,7 +25,7 @@ $ wkc research
   ✓ tab: research
     ✓ split vertical: shell
   ✓ tab: logs
-  ✓ editor: codeflicker → ~/projects/research
+  ✓ editor: vscode → ~/projects/research
 ✅ Workspace research launched
 ```
 
@@ -48,7 +48,7 @@ This creates the following layout automatically:
 │                       ↑ vertical split                          │
 └─────────────────────────────────────────────────────────────────┘
 
-┌─ CodeFlicker ───────────────────────────────────────────────────┐
+┌─ VS Code ───────────────────────────────────────────────────────┐
 │  📂 ~/projects/research                                         │
 │  ├── src/                                                       │
 │  ├── tests/                                                     │
@@ -57,8 +57,8 @@ This creates the following layout automatically:
 ```
 
 > All from a single YAML config. No scripts, no Automator, no clicking around.
-
-## Interactive Selection
+>
+> Any app that supports CLI or `open -a` can be auto-launched — VS Code, Obsidian, browsers, Docker Desktop, you name it.
 
 ## Interactive Selection
 
@@ -84,7 +84,8 @@ Config: ~/.zsh-workscene.yaml
 - **Workspace inheritance** — `extends` lets workspaces inherit and override a base config
 - **YAML config** — simple, readable workspace definitions
 - **iTerm2 integration** — creates named tabs and split panes via AppleScript
-- **Editor support** — VS Code, CodeFlicker, or any custom editor
+- **Editor support** — VS Code, CodeFlicker, or any app with CLI support
+- **App launching** — auto-open any app via `open -a` (Obsidian, browsers, etc.)
 - **fzf selection** — run `wkc` without arguments for interactive fuzzy search
 - **Tab completion** — workspace names auto-complete in zsh
 
@@ -199,6 +200,16 @@ workspaces:
       type: vscode
       path: ~/projects/research
 
+  writing:
+    description: Writing workspace with Obsidian
+    tabs:
+      - name: notes
+        dir: ~/notes
+        cmd: open -a "Obsidian"
+    editor:
+      type: vscode
+      path: ~/notes
+
   work:
     description: Backend API project
     tabs:
@@ -208,7 +219,7 @@ workspaces:
         dir: ~/work/project
         cmd: tail -f logs/app.log
     editor:
-      type: codeflicker
+      type: vscode
       path: ~/work/project
 
   work-fe:
@@ -235,6 +246,8 @@ workspaces:
 | `tabs[].split[].cmd` | Command to run in the pane (optional) |
 | `editor.type` | `vscode` / `code` / `codeflicker` / `flick` |
 | `editor.path` | Path to open in editor |
+
+> **Tip:** Use `cmd: open -a "AppName"` in any tab to launch macOS apps like Obsidian, Chrome, Docker Desktop, etc.
 
 ### Environment Variable
 
